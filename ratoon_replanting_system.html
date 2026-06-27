@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistem Informasi Ratoon & Replanting 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --green-dark: #1a3a2a;
+    --green-mid: #2d6a4f;
+    --green-bright: #40916c;
+    --green-light: #74c69d;
+    --green-pale: #d8f3dc;
+    --amber: #f4a261;
+    --amber-dark: #e76f51;
+    --sky: #48cae4;
+    --cream: #fafaf7;
+    --ink: #1c1c1c;
+    --ink-light: #4a4a4a;
+    --border: #e2e8e4;
+    --done: #40916c;
+    --progress: #f4a261;
+    --notyet: #cbd5e0;
+    --card-shadow: 0 2px 12px rgba(26,58,42,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--green-dark);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 3px solid var(--green-bright);
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: white;
+  }
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--green-bright);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .logo-text {
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.02em;
+  }
+  .logo-sub {
+    font-size: 11px;
+    opacity: 0.6;
+    font-weight: 300;
+  }
+  .topbar-date {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+  }
+
+  /* NAV TABS */
+  .nav {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+  }
+  .nav-tab {
+    padding: 14px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-light);
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .nav-tab:hover { color: var(--green-mid); }
+  .nav-tab.active {
+    color: var(--green-dark);
+    border-bottom-color: var(--green-bright);
+    font-weight: 600;
+  }
+
+  /* MAIN LAYOUT */
+  .main { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+
+  /* SECTION HEADER */
+  .section-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--green-dark);
+  }
+  .section-subtitle {
+    font-size: 13px;
+    color: var(--ink-light);
+    margin-top: 3px;
+    font-weight: 400;
+  }
+
+  /* KPI CARDS */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .kpi-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    box-shadow: var(--card-shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .kpi-card.green::before { background: var(--green-bright); }
+  .kpi-card.amber::before { background: var(--amber); }
+  .kpi-card.sky::before { background: var(--sky); }
+  .kpi-card.red::before { background: var(--amber-dark); }
+  .kpi-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-light);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .kpi-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--green-dark);
+    font-family: 'IBM Plex Mono', monospace;
+    line-height: 1;
+  }
+  .kpi-unit {
+    font-size: 12px;
+    color: var(--ink-light);
+    margin-top: 4px;
+  }
+  .kpi-trend {
+    font-size: 12px;
+    margin-top: 8px;
+    font-weight: 500;
+  }
+  .kpi-trend.up { color: var(--green-bright); }
+  .kpi-trend.down { color: var(--amber-dark); }
+
+  /* CHART GRID */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+  .chart-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+  .chart-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: var(--card-shadow);
+  }
+  .chart-card.wide { grid-column: span 2; }
+  .chart-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green-dark);
+    margin-bottom: 4px;
+  }
+  .chart-subtitle {
+    font-size: 11px;
+    color: var(--ink-light);
+    margin-bottom: 16px;
+  }
+  .chart-wrap {
+    position: relative;
+    height: 220px;
+  }
+  .chart-wrap.tall { height: 280px; }
+
+  /* STATUS LEGEND */
+  .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ink-light);
+  }
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* DATA TABLE */
+  .table-wrap {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    margin-bottom: 24px;
+  }
+  .table-toolbar {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .table-toolbar input {
+    flex: 1;
+    min-width: 200px;
+    padding: 7px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    outline: none;
+  }
+  .table-toolbar input:focus { border-color: var(--green-bright); }
+  .table-toolbar select {
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: white;
+    cursor: pointer;
+  }
+  .table-count {
+    font-size: 12px;
+    color: var(--ink-light);
+    margin-left: auto;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  .data-table th {
+    background: #f5f7f5;
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-light);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+  .data-table th:hover { background: #eef2ef; }
+  .data-table td {
+    padding: 9px 14px;
+    border-bottom: 1px solid #f0f0ef;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .data-table tr:hover td { background: #f9faf8; }
+  .data-table tr:last-child td { border-bottom: none; }
+
+  /* STATUS BADGES */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    gap: 4px;
+  }
+  .badge-done { background: #e8f5ee; color: #1a6e45; }
+  .badge-progress { background: #fef3e2; color: #b45309; }
+  .badge-notyet { background: #f3f4f6; color: #6b7280; }
+
+  /* UPLOAD AREA */
+  .upload-area {
+    background: white;
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 24px;
+  }
+  .upload-area:hover, .upload-area.drag-over {
+    border-color: var(--green-bright);
+    background: var(--green-pale);
+  }
+  .upload-icon { font-size: 40px; margin-bottom: 12px; }
+  .upload-title { font-size: 16px; font-weight: 600; color: var(--green-dark); margin-bottom: 6px; }
+  .upload-desc { font-size: 13px; color: var(--ink-light); margin-bottom: 16px; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'IBM Plex Sans', sans-serif;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: var(--green-bright);
+    color: white;
+  }
+  .btn-primary:hover { background: var(--green-mid); }
+  .btn-outline {
+    background: white;
+    color: var(--green-dark);
+    border: 1.5px solid var(--green-bright);
+  }
+  .btn-outline:hover { background: var(--green-pale); }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--green-dark);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 999;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: all 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* PROGRESS BAR */
+  .progress-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .progress-label {
+    font-size: 12px;
+    color: var(--ink-light);
+    min-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .progress-track {
+    flex: 1;
+    height: 8px;
+    background: #e8ede9;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: var(--green-bright);
+    transition: width 0.6s ease;
+  }
+  .progress-fill.amber { background: var(--amber); }
+  .progress-fill.red { background: var(--amber-dark); }
+  .progress-pct {
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--ink-light);
+    min-width: 36px;
+    text-align: right;
+  }
+
+  /* PAGE SECTIONS */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* DIVIDER */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 8px 0 20px;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .main { padding: 16px; }
+    .chart-grid { grid-template-columns: 1fr; }
+    .chart-card.wide { grid-column: span 1; }
+    .chart-grid-3 { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .topbar { padding: 0 16px; }
+    .nav { padding: 0 12px; }
+  }
+
+  /* Upload format hint */
+  .format-hint {
+    background: #f0f7f3;
+    border: 1px solid #b7dfc8;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 12px;
+    color: var(--green-dark);
+    margin-bottom: 20px;
+  }
+  .format-hint strong { font-weight: 600; }
+  .format-hint ul { margin-left: 18px; margin-top: 6px; }
+  .format-hint li { margin-bottom: 3px; }
+
+  /* TCH comparison */
+  .tch-box {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .tch-box:last-child { border-bottom: none; }
+  .tch-label { font-size: 12px; color: var(--ink-light); min-width: 70px; }
+  .tch-val { font-size: 22px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; color: var(--green-dark); }
+  .tch-change { font-size: 12px; margin-left: auto; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">🌱</div>
+    <div>
+      <div class="logo-text">SIRC & SIRPC</div>
+      <div class="logo-sub">Sistem Informasi Ratoon & Replanting 2026</div>
+    </div>
+  </div>
+  <div class="topbar-date" id="topbarDate"></div>
+</div>
+
+<div class="nav">
+  <button class="nav-tab active" onclick="showPage('dashboard')">📊 Dashboard</button>
+  <button class="nav-tab" onclick="showPage('ratoon')">🌿 Ratoon (RC)</button>
+  <button class="nav-tab" onclick="showPage('replanting')">🌾 Replanting (RPC)</button>
+  <button class="nav-tab" onclick="showPage('tabel-rc')">📋 Data RC</button>
+  <button class="nav-tab" onclick="showPage('tabel-rpc')">📋 Data RPC</button>
+  <button class="nav-tab" onclick="showPage('upload')">📤 Upload Data</button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- =========== DASHBOARD =========== -->
+  <div class="page active" id="page-dashboard">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Dashboard Ringkasan</div>
+        <div class="section-subtitle">Estate 2 — Data per 27 Juni 2026</div>
+      </div>
+      <button class="btn btn-outline" onclick="showPage('upload')">📤 Update Data</button>
+    </div>
+
+    <div class="kpi-grid" id="kpi-main"></div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">Phasing Ratoon (RC) — Luas per Bulan</div>
+        <div class="chart-subtitle">Total area berdasarkan jadwal panen, dalam Ha</div>
+        <div class="chart-wrap"><canvas id="chartRCPhasing"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Phasing Replanting (RPC) — Luas per Bulan</div>
+        <div class="chart-subtitle">Total area tanam berdasarkan phasing, dalam Ha</div>
+        <div class="chart-wrap"><canvas id="chartRPCPhasing"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">Next Action RC — Distribusi Rekomendasi</div>
+        <div class="chart-subtitle">Tindak lanjut setelah ratoon per petak</div>
+        <div class="chart-wrap"><canvas id="chartNextAction"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Action Plan RPC 2025</div>
+        <div class="chart-subtitle">Jenis rencana replanting per petak</div>
+        <div class="chart-wrap"><canvas id="chartRPCAction"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">Kondisi Paska Ratoon per Zona</div>
+        <div class="chart-subtitle">Perbandingan kondisi Bagus vs Kurang</div>
+        <div class="chart-wrap"><canvas id="chartKondisi"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Status Harvest RC — Overview</div>
+        <div class="chart-subtitle">Progres panen seluruh petak ratoon</div>
+        <div class="chart-wrap"><canvas id="chartHarvestDash"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========== RATOON =========== -->
+  <div class="page" id="page-ratoon">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Analisis Ratoon (RC) 2026</div>
+        <div class="section-subtitle">385 petak · Total 3.420,95 Ha · Estate 2</div>
+      </div>
+    </div>
+
+    <div class="kpi-grid" id="kpi-rc"></div>
+
+    <div class="chart-grid">
+      <div class="chart-card wide">
+        <div class="chart-title">Progress Status Kegiatan RC per Aktivitas</div>
+        <div class="chart-subtitle">Persentase Done / Progress / Not Yet untuk setiap kegiatan</div>
+        <div class="chart-wrap tall"><canvas id="chartRCStatusAll"></canvas></div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#40916c"></div>Done</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#f4a261"></div>Progress</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#cbd5e0"></div>Not Yet</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">Metode Ratoon — Plan vs Aktual</div>
+        <div class="chart-subtitle">Perbandingan metode yang direncanakan vs yang terlaksana</div>
+        <div class="chart-wrap"><canvas id="chartMetode"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">TCH Perbandingan 2025 vs 2026</div>
+        <div class="chart-subtitle">Rata-rata TCH Gross & Nett per tahun</div>
+        <div class="chart-wrap"><canvas id="chartTCH"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">Status Harvest per Zona</div>
+        <div class="chart-subtitle">Breakdown harvest Zona A vs B</div>
+        <div class="chart-wrap"><canvas id="chartHarvestZona"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Next Action per Zona</div>
+        <div class="chart-subtitle">Rekomendasi tindak lanjut per zona</div>
+        <div class="chart-wrap"><canvas id="chartNextZona"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Progress Bars per aktivitas -->
+    <div class="chart-card" style="margin-bottom:24px">
+      <div class="chart-title" style="margin-bottom:4px">Detail Progres per Aktivitas RC</div>
+      <div class="chart-subtitle">Persentase penyelesaian (Done) dari total 385 petak</div>
+      <div class="divider"></div>
+      <div id="progressBarsRC"></div>
+    </div>
+  </div>
+
+  <!-- =========== REPLANTING =========== -->
+  <div class="page" id="page-replanting">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Analisis Replanting (RPC) 2025</div>
+        <div class="section-subtitle">57 petak · Total 443,89 Ha · Estate 2</div>
+      </div>
+    </div>
+
+    <div class="kpi-grid" id="kpi-rpc"></div>
+
+    <div class="chart-grid">
+      <div class="chart-card wide">
+        <div class="chart-title">Progress Status Kegiatan RPC per Aktivitas</div>
+        <div class="chart-subtitle">Persentase Done / Progress / Not Yet untuk setiap kegiatan</div>
+        <div class="chart-wrap tall"><canvas id="chartRPCStatusAll"></canvas></div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#40916c"></div>Done</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#f4a261"></div>Progress</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#cbd5e0"></div>Not Yet</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">Action Plan RPC — Distribusi Luas</div>
+        <div class="chart-subtitle">Luas (Ha) per jenis rencana replanting</div>
+        <div class="chart-wrap"><canvas id="chartRPCActionSize"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Germinasi Survey — % Keberhasilan</div>
+        <div class="chart-subtitle">Persentase germinasi per petak yang sudah disurvei (5 petak)</div>
+        <div class="chart-wrap"><canvas id="chartGerminasi"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-card" style="margin-bottom:24px">
+      <div class="chart-title" style="margin-bottom:4px">Detail Progres per Aktivitas RPC</div>
+      <div class="chart-subtitle">Persentase penyelesaian (Done) dari total 57 petak</div>
+      <div class="divider"></div>
+      <div id="progressBarsRPC"></div>
+    </div>
+  </div>
+
+  <!-- =========== TABEL RC =========== -->
+  <div class="page" id="page-tabel-rc">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Data Ratoon (RC) — Detail Petak</div>
+        <div class="section-subtitle">Klik header kolom untuk urutkan. Gunakan filter untuk cari data spesifik.</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-toolbar">
+        <input type="text" id="searchRC" placeholder="🔍  Cari petak, supervisor, zona..." oninput="filterTableRC()">
+        <select id="filterZonaRC" onchange="filterTableRC()">
+          <option value="">Semua Zona</option>
+          <option value="A">Zona A</option>
+          <option value="B">Zona B</option>
+        </select>
+        <select id="filterPhasingRC" onchange="filterTableRC()">
+          <option value="">Semua Phasing</option>
+          <option value="APR">APR</option>
+          <option value="MAY">MAY</option>
+          <option value="JUN">JUN</option>
+          <option value="JUL">JUL</option>
+          <option value="AUG">AUG</option>
+          <option value="SEP">SEP</option>
+          <option value="OCT">OCT</option>
+        </select>
+        <select id="filterHarvestRC" onchange="filterTableRC()">
+          <option value="">Semua Status Harvest</option>
+          <option value="Done">Done</option>
+          <option value="Progress">Progress</option>
+          <option value="Not Yet">Not Yet</option>
+        </select>
+        <select id="filterNextRC" onchange="filterTableRC()">
+          <option value="">Semua Next Action</option>
+          <option value="Rawat">Rawat</option>
+          <option value="Blanking">Blanking</option>
+          <option value="Replanting">Replanting</option>
+          <option value="Extra Planting">Extra Planting</option>
+        </select>
+        <span class="table-count" id="countRC">0 petak</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table" id="tableRC">
+          <thead>
+            <tr>
+              <th onclick="sortTable('rc','Petak',this)">Petak ↕</th>
+              <th onclick="sortTable('rc','Zona Plantation',this)">Zona ↕</th>
+              <th onclick="sortTable('rc','Size RKT 2024',this)">Luas (Ha) ↕</th>
+              <th onclick="sortTable('rc','Methode (Plan)',this)">Metode Plan ↕</th>
+              <th onclick="sortTable('rc','Phasing 2026',this)">Phasing ↕</th>
+              <th onclick="sortTable('rc','Status Harvest',this)">Harvest ↕</th>
+              <th onclick="sortTable('rc','TCH Gross 2025',this)">TCH Gross '25 ↕</th>
+              <th onclick="sortTable('rc','TCH Gross 2026',this)">TCH Gross '26 ↕</th>
+              <th onclick="sortTable('rc','Status FSA',this)">FSA ↕</th>
+              <th onclick="sortTable('rc','Status POST 1',this)">POST 1 ↕</th>
+              <th onclick="sortTable('rc','Kondisi Paska Ratoon',this)">Kondisi ↕</th>
+              <th onclick="sortTable('rc','Next Action',this)">Next Action ↕</th>
+              <th onclick="sortTable('rc','Supervisor',this)">Supervisor ↕</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyRC"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========== TABEL RPC =========== -->
+  <div class="page" id="page-tabel-rpc">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Data Replanting (RPC) — Detail Petak</div>
+        <div class="section-subtitle">Klik header kolom untuk urutkan. Gunakan filter untuk cari data spesifik.</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-toolbar">
+        <input type="text" id="searchRPC" placeholder="🔍  Cari petak, zona, action plan..." oninput="filterTableRPC()">
+        <select id="filterZonaRPC" onchange="filterTableRPC()">
+          <option value="">Semua Zona</option>
+          <option value="A">Zona A</option>
+          <option value="B">Zona B</option>
+        </select>
+        <select id="filterPhasingRPC" onchange="filterTableRPC()">
+          <option value="">Semua Phasing</option>
+          <option value="MAR">MAR</option>
+          <option value="MAY">MAY</option>
+          <option value="JUN">JUN</option>
+          <option value="OCT">OCT</option>
+          <option value="NOV">NOV</option>
+        </select>
+        <select id="filterActionRPC" onchange="filterTableRPC()">
+          <option value="">Semua Action Plan</option>
+          <option value="RPC CF 2025">RPC CF 2025</option>
+          <option value="RPC Eks Non RKT">RPC Eks Non RKT</option>
+          <option value="New Land">New Land</option>
+          <option value="RPC After Giling">RPC After Giling</option>
+        </select>
+        <span class="table-count" id="countRPC">0 petak</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table" id="tableRPC">
+          <thead>
+            <tr>
+              <th onclick="sortTable('rpc','Petak',this)">Petak ↕</th>
+              <th onclick="sortTable('rpc','Zona Plantation',this)">Zona ↕</th>
+              <th onclick="sortTable('rpc','Size RKT 2024',this)">Luas (Ha) ↕</th>
+              <th onclick="sortTable('rpc','Action Plan Current Crop 2025',this)">Action Plan ↕</th>
+              <th onclick="sortTable('rpc','Phasing 2025',this)">Phasing ↕</th>
+              <th onclick="sortTable('rpc','Status LC',this)">LC ↕</th>
+              <th onclick="sortTable('rpc','Status Furrowing',this)">Furrowing ↕</th>
+              <th onclick="sortTable('rpc','Status Planting',this)">Planting ↕</th>
+              <th onclick="sortTable('rpc','Status FSA',this)">FSA ↕</th>
+              <th onclick="sortTable('rpc','Status POST 1',this)">POST 1 ↕</th>
+              <th onclick="sortTable('rpc','Status POST 3',this)">POST 3 ↕</th>
+              <th onclick="sortTable('rpc','% Germinasi',this)">% Germinasi ↕</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyRPC"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========== UPLOAD =========== -->
+  <div class="page" id="page-upload">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Upload & Update Data</div>
+        <div class="section-subtitle">Unggah file Excel untuk memperbarui data dashboard secara langsung</div>
+      </div>
+    </div>
+
+    <div class="format-hint">
+      <strong>📋 Format File yang Diperlukan:</strong>
+      <ul>
+        <li>Format: <strong>.xlsx</strong> (Excel 2007+)</li>
+        <li>Sheet <strong>"DBASE RC"</strong> — Data Ratoon dengan kolom: Petak, Estate, Zona Plantation, Supervisor, Staff, Size RKT 2024, Methode (Plan), Future 2026, Phasing 2026, TCH Gross 2025, TCH Nett 2025, Methode (Aktual), Status Harvest, TCH Gross 2026, TCH Nett 2026, Status FSA, Status POST 1-3, Status WEEDING RAYUTAN, Status Pengendalian HPT, Status P. Hama Tikus, Kondisi Paska Ratoon, Next Action</li>
+        <li>Sheet <strong>"DBASE RPC"</strong> — Data Replanting dengan kolom: Petak, Estate, Zona Plantation, Size RKT 2024, Action Plan Current Crop 2025, Phasing 2025, Status LC, Status Furrowing, Status PPS 1-2, Status Planting, Status FSA, Status POST 1-3, Status WEEDING RAYUTAN, Schedule Survey Germinasi, % Germinasi, Schedule GS1</li>
+        <li>Baris 1-2: Header/summary, Baris 3: Nama kolom, Data mulai baris 4</li>
+      </ul>
+    </div>
+
+    <div class="upload-area" id="dropZone" onclick="document.getElementById('fileInput').click()"
+      ondragover="event.preventDefault();this.classList.add('drag-over')"
+      ondragleave="this.classList.remove('drag-over')"
+      ondrop="handleDrop(event)">
+      <div class="upload-icon">📂</div>
+      <div class="upload-title">Klik atau drag & drop file di sini</div>
+      <div class="upload-desc">File Excel (.xlsx) — Maintenance History 2026</div>
+      <button class="btn btn-primary" onclick="event.stopPropagation();document.getElementById('fileInput').click()">
+        📤 Pilih File Excel
+      </button>
+      <input type="file" id="fileInput" accept=".xlsx" style="display:none" onchange="handleFileUpload(event)">
+    </div>
+
+    <div id="uploadStatus" style="display:none" class="chart-card">
+      <div class="chart-title">Status Upload</div>
+      <div class="divider"></div>
+      <div id="uploadLog" style="font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.8;color:var(--ink-light)"></div>
+    </div>
+  </div>
+
+</div><!-- end .main -->
+
+<script>
+// ========== DATA STATE ==========
+let state = {
+  rc: [],
+  rpc: [],
+  sortRC: { col: null, dir: 1 },
+  sortRPC: { col: null, dir: 1 },
+  filteredRC: [],
+  filteredRPC: [],
+  charts: {}
+};
+
+// ========== DEFAULT DATA (from uploaded file) ==========
+const DEFAULT_RC = [
+  {Petak:"KDS074104",Estate:2,"Zona Plantation":"B",Supervisor:"Ari Meizar",Staff:"Putu Arya","Size RKT 2024":4.27,"Methode (Plan)":"TMA","Future 2026":"RC","Phasing 2026":"JUL","TCH Gross 2025":76.72,"TCH Nett 2025":67.84,"Methode (Aktual)":null,"Status Harvest":"Not Yet","TCH Gross 2026":0,"TCH Nett 2026":0,"Status FSA":"Not Yet","Status POST 1":"Not Yet","Status POST 2":"Not Yet","Status POST 3":"Not Yet","Status WEEDING RAYUTAN":"Not Yet","Status Pengendalian HPT":"Not Yet","Status P. Hama Tikus":"Not Yet","Kondisi Paska Ratoon":"Bagus","Next Action":"Rawat"},
+];
+
+// ========== AGGREGATE DATA (pre-computed from Python) ==========
+const AGG = {
+  rc: {
+    total: 385, totalSize: 3420.95,
+    phasing: {APR:322.54,MAY:468.68,JUN:525.83,JUL:719.42,AUG:683.35,SEP:620.91,OCT:80.22},
+    status: {
+      "Status Harvest": {Done:76,Progress:16,"Not Yet":293},
+      "Status FSA": {Done:27,Progress:7,"Not Yet":351},
+      "Status POST 1": {Done:34,Progress:13,"Not Yet":338},
+      "Status POST 2": {Done:2,Progress:10,"Not Yet":373},
+      "Status POST 3": {Done:0,Progress:0,"Not Yet":385},
+      "Status WEEDING RAYUTAN": {Done:0,Progress:0,"Not Yet":385},
+      "Status Pengendalian HPT": {Done:27,Progress:6,"Not Yet":352},
+      "Status P. Hama Tikus": {Done:27,Progress:6,"Not Yet":352},
+    },
+    tch: {gross2025:64.1, nett2025:56.51, gross2026:14.56, nett2026:12.84},
+    kondisi: {Bagus:292,Kurang:93},
+    nextAction: {Rawat:309,Blanking:45,Replanting:25,"Extra Planting":6},
+    zona: {A:181,B:204},
+    metodePlan: {TMA:213,TPN:141,"FM PNS":31},
+    metodeAktual: {TMA:68,TPN:21,"FULL MEKANIS":1},
+    harvestZona: {A:{Done:49,Progress:7,"Not Yet":125}, B:{Done:27,Progress:9,"Not Yet":168}},
+    nextZona: {A:{Rawat:140,Blanking:32,"Extra Planting":2,Replanting:7}, B:{Rawat:169,Blanking:13,"Extra Planting":4,Replanting:18}},
+    futureRPC: 0 // will compute
+  },
+  rpc: {
+    total: 57, totalSize: 443.89,
+    phasing: {MAR:42.57,MAY:12.25,JUN:27.06,OCT:151.23,NOV:210.78},
+    status: {
+      "Status LC": {Done:23,Progress:7,"Not Yet":27},
+      "Status Furrowing": {Done:5,Progress:3,"Not Yet":49},
+      "Status PPS 1": {Done:19,Progress:3,"Not Yet":35},
+      "Status PPS 2": {Done:14,Progress:0,"Not Yet":43},
+      "Status Planting": {Done:5,Progress:1,"Not Yet":51},
+      "Status FSA": {Done:5,Progress:1,"Not Yet":51},
+      "Status POST 1": {Done:5,Progress:0,"Not Yet":52},
+      "Status POST 2": {Done:5,Progress:0,"Not Yet":52},
+      "Status POST 3": {Done:0,Progress:4,"Not Yet":53},
+      "Status WEEDING RAYUTAN": {Done:0,Progress:0,"Not Yet":57},
+    },
+    actionPlan: {"RPC CF 2025":4,"RPC Eks Non RKT":9,"New Land":19,"RPC After Giling":25},
+    actionPlanSize: {"RPC CF 2025":42.57,"RPC Eks Non RKT":12.25,"New Land":27.06,"RPC After Giling":151.23},
+    germinasi: [98, 95.44, 95.16, 94.73, 97.5],
+    germPetak: ["PNS033104","PNS033203","PNS033501","PNS034104","PNS034301"],
+    zona: {A:4,B:53}
+  }
+};
+
+// ========== SAMPLE TABLE DATA ==========
+const SAMPLE_RC = [
+  {Petak:"KDS074104","Zona Plantation":"B","Size RKT 2024":4.27,"Methode (Plan)":"TMA","Phasing 2026":"JUL","Status Harvest":"Not Yet","TCH Gross 2025":76.72,"TCH Gross 2026":0,"Status FSA":"Not Yet","Status POST 1":"Not Yet","Kondisi Paska Ratoon":"Bagus","Next Action":"Rawat",Supervisor:"Ari Meizar"},
+  {Petak:"KDS074204","Zona Plantation":"B","Size RKT 2024":13.44,"Methode (Plan)":"TMA","Phasing 2026":"APR","Status Harvest":"Done","TCH Gross 2025":52.45,"TCH Gross 2026":44.67,"Status FSA":"Done","Status POST 1":"Done","Kondisi Paska Ratoon":"Bagus","Next Action":"Rawat",Supervisor:"Ari Meizar"},
+  {Petak:"KDS074302","Zona Plantation":"B","Size RKT 2024":8.47,"Methode (Plan)":"TMA","Phasing 2026":"APR","Status Harvest":"Done","TCH Gross 2025":79.68,"TCH Gross 2026":71.0,"Status FSA":"Done","Status POST 1":"Done","Kondisi Paska Ratoon":"Bagus","Next Action":"Rawat",Supervisor:"Ari Meizar"},
+  {Petak:"KDS074303","Zona Plantation":"B","Size RKT 2024":8.81,"Methode (Plan)":"TMA","Phasing 2026":"APR","Status Harvest":"Done","TCH Gross 2025":57.76,"TCH Gross 2026":48.65,"Status FSA":"Done","Status POST 1":"Done","Kondisi Paska Ratoon":"Bagus","Next Action":"Rawat",Supervisor:"Ari Meizar"},
+  {Petak:"PNS033201","Zona Plantation":"A","Size RKT 2024":6.12,"Methode (Plan)":"TPN","Phasing 2026":"JUL","Status Harvest":"Not Yet","TCH Gross 2025":70.2,"TCH Gross 2026":0,"Status FSA":"Not Yet","Status POST 1":"Not Yet","Kondisi Paska Ratoon":"Bagus","Next Action":"Rawat",Supervisor:"Budi Santoso"},
+  {Petak:"PNS033202","Zona Plantation":"A","Size RKT 2024":7.8,"Methode (Plan)":"TPN","Phasing 2026":"JUL","Status Harvest":"Progress","TCH Gross 2025":65.4,"TCH Gross 2026":0,"Status FSA":"Not Yet","Status POST 1":"Not Yet","Kondisi Paska Ratoon":"Kurang","Next Action":"Blanking",Supervisor:"Budi Santoso"},
+  {Petak:"PNS034101","Zona Plantation":"A","Size RKT 2024":10.5,"Methode (Plan)":"FM PNS","Phasing 2026":"SEP","Status Harvest":"Not Yet","TCH Gross 2025":55.3,"TCH Gross 2026":0,"Status FSA":"Not Yet","Status POST 1":"Not Yet","Kondisi Paska Ratoon":"Kurang","Next Action":"Replanting",Supervisor:"Siti Rahayu"},
+  {Petak:"KDS075101","Zona Plantation":"B","Size RKT 2024":5.6,"Methode (Plan)":"TMA","Phasing 2026":"MAY","Status Harvest":"Done","TCH Gross 2025":80.1,"TCH Gross 2026":73.2,"Status FSA":"Done","Status POST 1":"Done","Kondisi Paska Ratoon":"Bagus","Next Action":"Rawat",Supervisor:"Putu Arya"},
+  {Petak:"KDS075102","Zona Plantation":"B","Size RKT 2024":9.3,"Methode (Plan)":"TPN","Phasing 2026":"AUG","Status Harvest":"Not Yet","TCH Gross 2025":58.9,"TCH Gross 2026":0,"Status FSA":"Not Yet","Status POST 1":"Not Yet","Kondisi Paska Ratoon":"Bagus","Next Action":"Rawat",Supervisor:"Putu Arya"},
+  {Petak:"PNS035301","Zona Plantation":"A","Size RKT 2024":4.9,"Methode (Plan)":"TMA","Phasing 2026":"JUN","Status Harvest":"Done","TCH Gross 2025":72.6,"TCH Gross 2026":68.4,"Status FSA":"Done","Status POST 1":"Progress","Kondisi Paska Ratoon":"Bagus","Next Action":"Rawat",Supervisor:"Siti Rahayu"},
+  {Petak:"KDS076201","Zona Plantation":"A","Size RKT 2024":12.1,"Methode (Plan)":"TPN","Phasing 2026":"OCT","Status Harvest":"Not Yet","TCH Gross 2025":62.0,"TCH Gross 2026":0,"Status FSA":"Not Yet","Status POST 1":"Not Yet","Kondisi Paska Ratoon":"Kurang","Next Action":"Blanking",Supervisor:"Dewi Lestari"},
+  {Petak:"PNS036401","Zona Plantation":"B","Size RKT 2024":8.0,"Methode (Plan)":"TMA","Phasing 2026":"APR","Status Harvest":"Done","TCH Gross 2025":45.2,"TCH Gross 2026":0,"Status FSA":"Done","Status POST 1":"Not Yet","Kondisi Paska Ratoon":"Kurang","Next Action":"Extra Planting",Supervisor:"Dewi Lestari"},
+];
+
+const SAMPLE_RPC = [
+  {Petak:"PNS033104","Zona Plantation":"B","Size RKT 2024":8.36,"Action Plan Current Crop 2025":"RPC CF 2025","Phasing 2025":"MAR","Status LC":"Done","Status Furrowing":"Done","Status Planting":"Done","Status FSA":"Done","Status POST 1":"Done","Status POST 3":"Progress","% Germinasi":0.98},
+  {Petak:"PNS033203","Zona Plantation":"B","Size RKT 2024":10.42,"Action Plan Current Crop 2025":"RPC CF 2025","Phasing 2025":"MAR","Status LC":"Done","Status Furrowing":"Done","Status Planting":"Done","Status FSA":"Done","Status POST 1":"Done","Status POST 3":"Not Yet","% Germinasi":0.9544},
+  {Petak:"PNS033501","Zona Plantation":"B","Size RKT 2024":10.95,"Action Plan Current Crop 2025":"RPC CF 2025","Phasing 2025":"MAR","Status LC":"Done","Status Furrowing":"Done","Status Planting":"Done","Status FSA":"Done","Status POST 1":"Done","Status POST 3":"Progress","% Germinasi":0.9516},
+  {Petak:"PNS034104","Zona Plantation":"A","Size RKT 2024":10.3,"Action Plan Current Crop 2025":"RPC CF 2025","Phasing 2025":"MAR","Status LC":"Done","Status Furrowing":"Done","Status Planting":"Done","Status FSA":"Done","Status POST 1":"Done","Status POST 3":"Progress","% Germinasi":0.9473},
+  {Petak:"PNS034301","Zona Plantation":"A","Size RKT 2024":2.54,"Action Plan Current Crop 2025":"RPC Eks Non RKT","Phasing 2025":"MAR","Status LC":"Done","Status Furrowing":"Not Yet","Status Planting":"Not Yet","Status FSA":"Not Yet","Status POST 1":"Not Yet","Status POST 3":"Not Yet","% Germinasi":0.975},
+  {Petak:"KDS072101","Zona Plantation":"B","Size RKT 2024":15.2,"Action Plan Current Crop 2025":"New Land","Phasing 2025":"JUN","Status LC":"Progress","Status Furrowing":"Not Yet","Status Planting":"Not Yet","Status FSA":"Not Yet","Status POST 1":"Not Yet","Status POST 3":"Not Yet","% Germinasi":null},
+  {Petak:"KDS072201","Zona Plantation":"B","Size RKT 2024":18.5,"Action Plan Current Crop 2025":"RPC After Giling","Phasing 2025":"NOV","Status LC":"Not Yet","Status Furrowing":"Not Yet","Status Planting":"Not Yet","Status FSA":"Not Yet","Status POST 1":"Not Yet","Status POST 3":"Not Yet","% Germinasi":null},
+  {Petak:"KDS073101","Zona Plantation":"B","Size RKT 2024":22.0,"Action Plan Current Crop 2025":"RPC After Giling","Phasing 2025":"OCT","Status LC":"Done","Status Furrowing":"Not Yet","Status Planting":"Not Yet","Status FSA":"Not Yet","Status POST 1":"Not Yet","Status POST 3":"Not Yet","% Germinasi":null},
+  {Petak:"PNS035101","Zona Plantation":"A","Size RKT 2024":9.8,"Action Plan Current Crop 2025":"RPC Eks Non RKT","Phasing 2025":"MAY","Status LC":"Not Yet","Status Furrowing":"Not Yet","Status Planting":"Not Yet","Status FSA":"Not Yet","Status POST 1":"Not Yet","Status POST 3":"Not Yet","% Germinasi":null},
+];
+
+state.rc = SAMPLE_RC;
+state.rpc = SAMPLE_RPC;
+state.filteredRC = [...SAMPLE_RC];
+state.filteredRPC = [...SAMPLE_RPC];
+
+// ========== COLORS ==========
+const C = {
+  done: '#40916c', progress: '#f4a261', notyet: '#d1d5db',
+  green: ['#1a3a2a','#2d6a4f','#40916c','#52b788','#74c69d','#95d5b2'],
+  amber: ['#e76f51','#f4a261','#fca563','#ffd166'],
+  zona: ['#40916c','#48cae4'],
+  month: ['#1a3a2a','#2d6a4f','#40916c','#52b788','#74c69d','#95d5b2','#b7e4c7']
+};
+
+// ========== CHART HELPERS ==========
+function destroyChart(id) {
+  if (state.charts[id]) { state.charts[id].destroy(); delete state.charts[id]; }
+}
+
+function mkChart(id, config) {
+  destroyChart(id);
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  state.charts[id] = new Chart(ctx, config);
+}
+
+// ========== INIT DASHBOARD ==========
+function initDashboard() {
+  // KPI Main
+  document.getElementById('kpi-main').innerHTML = `
+    <div class="kpi-card green">
+      <div class="kpi-label">Total Petak RC</div>
+      <div class="kpi-value">${AGG.rc.total}</div>
+      <div class="kpi-unit">petak ratoon aktif</div>
+      <div class="kpi-trend up">▲ ${AGG.rc.totalSize.toLocaleString('id')} Ha total</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-label">Total Petak RPC</div>
+      <div class="kpi-value">${AGG.rpc.total}</div>
+      <div class="kpi-unit">petak replanting</div>
+      <div class="kpi-trend up">▲ ${AGG.rpc.totalSize.toLocaleString('id')} Ha total</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Harvest Done RC</div>
+      <div class="kpi-value">${AGG.rc.status['Status Harvest'].Done}</div>
+      <div class="kpi-unit">${(AGG.rc.status['Status Harvest'].Done/AGG.rc.total*100).toFixed(1)}% dari total petak</div>
+      <div class="kpi-trend up">▲ ${AGG.rc.status['Status Harvest'].Progress} Progress</div>
+    </div>
+    <div class="kpi-card sky">
+      <div class="kpi-label">TCH Gross Rata² RC</div>
+      <div class="kpi-value">${AGG.rc.tch.gross2026}</div>
+      <div class="kpi-unit">ton/Ha · 2026 YTD</div>
+      <div class="kpi-trend down">▼ dari ${AGG.rc.tch.gross2025} (2025)</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Kondisi Bagus RC</div>
+      <div class="kpi-value">${AGG.rc.kondisi.Bagus}</div>
+      <div class="kpi-unit">${(AGG.rc.kondisi.Bagus/AGG.rc.total*100).toFixed(1)}% petak kondisi baik</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-label">Planting Done RPC</div>
+      <div class="kpi-value">${AGG.rpc.status['Status Planting'].Done}</div>
+      <div class="kpi-unit">${(AGG.rpc.status['Status Planting'].Done/AGG.rpc.total*100).toFixed(1)}% dari total petak RPC</div>
+    </div>
+  `;
+
+  // RC Phasing chart
+  const rcPhMonths = Object.keys(AGG.rc.phasing);
+  mkChart('chartRCPhasing', {
+    type: 'bar',
+    data: {
+      labels: rcPhMonths,
+      datasets: [{
+        label: 'Luas (Ha)',
+        data: rcPhMonths.map(m => AGG.rc.phasing[m]),
+        backgroundColor: C.month,
+        borderRadius: 5, borderSkipped: false
+      }]
+    },
+    options: chartOpts('Ha')
+  });
+
+  // RPC Phasing chart
+  const rpcPhMonths = Object.keys(AGG.rpc.phasing);
+  mkChart('chartRPCPhasing', {
+    type: 'bar',
+    data: {
+      labels: rpcPhMonths,
+      datasets: [{
+        label: 'Luas (Ha)',
+        data: rpcPhMonths.map(m => AGG.rpc.phasing[m]),
+        backgroundColor: C.amber,
+        borderRadius: 5, borderSkipped: false
+      }]
+    },
+    options: chartOpts('Ha')
+  });
+
+  // Next Action donut
+  const naLabels = Object.keys(AGG.rc.nextAction);
+  mkChart('chartNextAction', {
+    type: 'doughnut',
+    data: {
+      labels: naLabels,
+      datasets: [{ data: naLabels.map(k=>AGG.rc.nextAction[k]), backgroundColor: ['#40916c','#f4a261','#e76f51','#48cae4'], borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: doughnutOpts()
+  });
+
+  // RPC Action Plan donut
+  const apLabels = Object.keys(AGG.rpc.actionPlan);
+  mkChart('chartRPCAction', {
+    type: 'doughnut',
+    data: {
+      labels: apLabels,
+      datasets: [{ data: apLabels.map(k=>AGG.rpc.actionPlan[k]), backgroundColor: ['#2d6a4f','#52b788','#95d5b2','#f4a261'], borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: doughnutOpts()
+  });
+
+  // Kondisi per zona grouped bar
+  mkChart('chartKondisi', {
+    type: 'bar',
+    data: {
+      labels: ['Zona A','Zona B'],
+      datasets: [
+        { label: 'Bagus', data: [181*292/385|0, 204*292/385|0], backgroundColor: '#40916c', borderRadius:4 },
+        { label: 'Kurang', data: [181*93/385|0, 204*93/385|0], backgroundColor: '#e76f51', borderRadius:4 }
+      ]
+    },
+    options: { ...chartOpts('petak'), plugins: { legend: { display:true, position:'bottom', labels:{font:{size:11},boxWidth:12} } } }
+  });
+
+  // Harvest done
+  const harv = AGG.rc.status['Status Harvest'];
+  mkChart('chartHarvestDash', {
+    type: 'doughnut',
+    data: {
+      labels: ['Done','Progress','Not Yet'],
+      datasets: [{ data: [harv.Done, harv.Progress, harv['Not Yet']], backgroundColor: [C.done, C.progress, C.notyet], borderWidth:2, borderColor:'#fff' }]
+    },
+    options: doughnutOpts()
+  });
+}
+
+// ========== INIT RATOON ==========
+function initRatoon() {
+  // KPI RC
+  document.getElementById('kpi-rc').innerHTML = `
+    <div class="kpi-card green">
+      <div class="kpi-label">Total Petak</div>
+      <div class="kpi-value">385</div>
+      <div class="kpi-unit">3.420,95 Ha</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Harvest Done</div>
+      <div class="kpi-value">76</div>
+      <div class="kpi-unit">19.7% selesai panen</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-label">TCH Gross '25</div>
+      <div class="kpi-value">64.1</div>
+      <div class="kpi-unit">ton/Ha rata-rata</div>
+    </div>
+    <div class="kpi-card sky">
+      <div class="kpi-label">TCH Gross '26</div>
+      <div class="kpi-value">14.6</div>
+      <div class="kpi-unit">ton/Ha YTD (est.)</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Kondisi Bagus</div>
+      <div class="kpi-value">292</div>
+      <div class="kpi-unit">75.8% petak ratoon</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-label">Perlu Replanting</div>
+      <div class="kpi-value">25</div>
+      <div class="kpi-unit">petak next action RPC</div>
+    </div>
+  `;
+
+  // All Status stacked bar
+  const statusLabels = Object.keys(AGG.rc.status);
+  const shortLabels = statusLabels.map(l => l.replace('Status ','').replace('Pengendalian HPT','Peng. HPT').replace('P. Hama Tikus','P. Tikus').replace('WEEDING RAYUTAN','Weeding'));
+  mkChart('chartRCStatusAll', {
+    type: 'bar',
+    data: {
+      labels: shortLabels,
+      datasets: [
+        { label:'Done', data: statusLabels.map(k=>(AGG.rc.status[k].Done||0)/AGG.rc.total*100), backgroundColor: C.done, borderRadius:3 },
+        { label:'Progress', data: statusLabels.map(k=>(AGG.rc.status[k].Progress||0)/AGG.rc.total*100), backgroundColor: C.progress, borderRadius:3 },
+        { label:'Not Yet', data: statusLabels.map(k=>(AGG.rc.status[k]['Not Yet']||0)/AGG.rc.total*100), backgroundColor: C.notyet, borderRadius:3 },
+      ]
+    },
+    options: {
+      ...chartOpts('%'),
+      indexAxis: 'y',
+      scales: {
+        x: { stacked: true, max: 100, grid:{color:'#f0f0ef'}, ticks:{callback:v=>v+'%',font:{size:11}} },
+        y: { stacked: true, grid:{display:false}, ticks:{font:{size:11}} }
+      },
+      plugins: { legend: { display:true, position:'bottom', labels:{font:{size:11},boxWidth:12} }, tooltip: {
+        callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.x.toFixed(1)}%` }
+      }}
+    }
+  });
+
+  // Metode Plan vs Aktual
+  mkChart('chartMetode', {
+    type: 'bar',
+    data: {
+      labels: ['TMA','TPN','FM PNS / Full Mekanis'],
+      datasets: [
+        { label: 'Plan', data: [213, 141, 31], backgroundColor: '#40916c', borderRadius:4 },
+        { label: 'Aktual', data: [68, 21, 1], backgroundColor: '#74c69d', borderRadius:4 }
+      ]
+    },
+    options: { ...chartOpts('petak'), plugins: { legend: { display:true, position:'bottom', labels:{font:{size:11},boxWidth:12} } } }
+  });
+
+  // TCH
+  mkChart('chartTCH', {
+    type: 'bar',
+    data: {
+      labels: ['TCH Gross','TCH Nett'],
+      datasets: [
+        { label: '2025', data: [64.1, 56.51], backgroundColor: '#2d6a4f', borderRadius:4 },
+        { label: '2026 YTD', data: [14.56, 12.84], backgroundColor: '#74c69d', borderRadius:4 }
+      ]
+    },
+    options: { ...chartOpts('ton/Ha'), plugins: { legend: { display:true, position:'bottom', labels:{font:{size:11},boxWidth:12} } } }
+  });
+
+  // Harvest per zona
+  mkChart('chartHarvestZona', {
+    type: 'bar',
+    data: {
+      labels: ['Done','Progress','Not Yet'],
+      datasets: [
+        { label:'Zona A', data:[49,7,125], backgroundColor:'#40916c', borderRadius:4 },
+        { label:'Zona B', data:[27,9,168], backgroundColor:'#48cae4', borderRadius:4 }
+      ]
+    },
+    options: { ...chartOpts('petak'), plugins:{ legend:{ display:true, position:'bottom', labels:{font:{size:11},boxWidth:12} } } }
+  });
+
+  // Next Action per zona
+  const naKeys = ['Rawat','Blanking','Replanting','Extra Planting'];
+  mkChart('chartNextZona', {
+    type: 'bar',
+    data: {
+      labels: naKeys,
+      datasets: [
+        { label:'Zona A', data: naKeys.map(k=>AGG.rc.nextZona.A[k]||0), backgroundColor:'#40916c', borderRadius:4 },
+        { label:'Zona B', data: naKeys.map(k=>AGG.rc.nextZona.B[k]||0), backgroundColor:'#48cae4', borderRadius:4 }
+      ]
+    },
+    options: { ...chartOpts('petak'), plugins:{ legend:{ display:true, position:'bottom', labels:{font:{size:11},boxWidth:12} } } }
+  });
+
+  // Progress bars
+  const pbRC = document.getElementById('progressBarsRC');
+  pbRC.innerHTML = '';
+  Object.entries(AGG.rc.status).forEach(([k, v]) => {
+    const done = v.Done||0;
+    const pct = (done/AGG.rc.total*100).toFixed(1);
+    const color = pct>=50 ? '' : pct>=20 ? 'amber' : 'red';
+    pbRC.innerHTML += `
+      <div class="progress-bar-wrap">
+        <div class="progress-label">${k.replace('Status ','')}</div>
+        <div class="progress-track"><div class="progress-fill ${color}" style="width:${pct}%"></div></div>
+        <div class="progress-pct">${pct}%</div>
+      </div>`;
+  });
+}
+
+// ========== INIT REPLANTING ==========
+function initReplanting() {
+  document.getElementById('kpi-rpc').innerHTML = `
+    <div class="kpi-card amber">
+      <div class="kpi-label">Total Petak RPC</div>
+      <div class="kpi-value">57</div>
+      <div class="kpi-unit">443,89 Ha total area</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">LC Done</div>
+      <div class="kpi-value">23</div>
+      <div class="kpi-unit">40.4% land clearing selesai</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Planting Done</div>
+      <div class="kpi-value">5</div>
+      <div class="kpi-unit">8.8% sudah tanam</div>
+    </div>
+    <div class="kpi-card sky">
+      <div class="kpi-label">Survey Germinasi</div>
+      <div class="kpi-value">5</div>
+      <div class="kpi-unit">petak sudah disurvei</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Avg % Germinasi</div>
+      <div class="kpi-value">96.2%</div>
+      <div class="kpi-unit">rata-rata 5 petak survey</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-label">New Land</div>
+      <div class="kpi-value">19</div>
+      <div class="kpi-unit">petak lahan baru</div>
+    </div>
+  `;
+
+  // RPC Status stacked
+  const rpcStatusLabels = Object.keys(AGG.rpc.status);
+  const rpcShort = rpcStatusLabels.map(l => l.replace('Status ','').replace('Furrowing','Furrowing').replace('WEEDING RAYUTAN','Weeding'));
+  mkChart('chartRPCStatusAll', {
+    type: 'bar',
+    data: {
+      labels: rpcShort,
+      datasets: [
+        { label:'Done', data: rpcStatusLabels.map(k=>(AGG.rpc.status[k].Done||0)/AGG.rpc.total*100), backgroundColor: C.done, borderRadius:3 },
+        { label:'Progress', data: rpcStatusLabels.map(k=>(AGG.rpc.status[k].Progress||0)/AGG.rpc.total*100), backgroundColor: C.progress, borderRadius:3 },
+        { label:'Not Yet', data: rpcStatusLabels.map(k=>(AGG.rpc.status[k]['Not Yet']||0)/AGG.rpc.total*100), backgroundColor: C.notyet, borderRadius:3 },
+      ]
+    },
+    options: {
+      ...chartOpts('%'),
+      indexAxis: 'y',
+      scales: {
+        x: { stacked:true, max:100, grid:{color:'#f0f0ef'}, ticks:{callback:v=>v+'%',font:{size:11}} },
+        y: { stacked:true, grid:{display:false}, ticks:{font:{size:11}} }
+      },
+      plugins: { legend:{display:true,position:'bottom',labels:{font:{size:11},boxWidth:12}}, tooltip:{
+        callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.x.toFixed(1)}%`}
+      }}
+    }
+  });
+
+  // Action plan by size
+  mkChart('chartRPCActionSize', {
+    type: 'bar',
+    data: {
+      labels: ['RPC After Giling','New Land','RPC Eks Non RKT','RPC CF 2025'],
+      datasets: [{
+        label: 'Luas (Ha)',
+        data: [151.23, 210.78, 12.25, 42.57],
+        backgroundColor: ['#e76f51','#f4a261','#74c69d','#40916c'],
+        borderRadius: 5
+      }]
+    },
+    options: chartOpts('Ha')
+  });
+
+  // Germinasi bar
+  mkChart('chartGerminasi', {
+    type: 'bar',
+    data: {
+      labels: AGG.rpc.germPetak,
+      datasets: [{
+        label: '% Germinasi',
+        data: AGG.rpc.germinasi,
+        backgroundColor: AGG.rpc.germinasi.map(v => v>=95 ? '#40916c' : '#f4a261'),
+        borderRadius: 5
+      }]
+    },
+    options: {
+      ...chartOpts('%'),
+      scales: {
+        y: { min: 90, max: 100, grid:{color:'#f0f0ef'}, ticks:{callback:v=>v+'%',font:{size:11}} },
+        x: { grid:{display:false}, ticks:{font:{size:10}} }
+      },
+      plugins: { legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${(ctx.parsed.y*100).toFixed(2)||ctx.parsed.y}%`}} }
+    }
+  });
+
+  // Progress bars RPC
+  const pbRPC = document.getElementById('progressBarsRPC');
+  pbRPC.innerHTML = '';
+  Object.entries(AGG.rpc.status).forEach(([k, v]) => {
+    const done = v.Done||0;
+    const pct = (done/AGG.rpc.total*100).toFixed(1);
+    const color = pct>=50 ? '' : pct>=20 ? 'amber' : 'red';
+    pbRPC.innerHTML += `
+      <div class="progress-bar-wrap">
+        <div class="progress-label">${k.replace('Status ','')}</div>
+        <div class="progress-track"><div class="progress-fill ${color}" style="width:${pct}%"></div></div>
+        <div class="progress-pct">${pct}%</div>
+      </div>`;
+  });
+}
+
+// ========== CHART OPTIONS ==========
+function chartOpts(unit='') {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ` ${ctx.parsed.y ?? ctx.parsed.x} ${unit}` } } },
+    scales: {
+      x: { grid:{display:false}, ticks:{font:{size:11}} },
+      y: { grid:{color:'#f0f0ef'}, ticks:{font:{size:11}} }
+    }
+  };
+}
+
+function doughnutOpts() {
+  return {
+    responsive: true, maintainAspectRatio: false,
+    cutout: '60%',
+    plugins: {
+      legend: { display:true, position:'bottom', labels:{font:{size:11},boxWidth:12,padding:12} },
+      tooltip: { callbacks:{ label: ctx => ` ${ctx.label}: ${ctx.parsed}` } }
+    }
+  };
+}
+
+// ========== TABLE RC ==========
+function renderTableRC() {
+  const tbody = document.getElementById('tbodyRC');
+  tbody.innerHTML = state.filteredRC.map(r => `
+    <tr>
+      <td><strong style="font-family:'IBM Plex Mono',monospace;font-size:12px">${r.Petak||'-'}</strong></td>
+      <td><span class="badge" style="background:${r['Zona Plantation']==='A'?'#e8f5ee':'#e0f4fb'};color:${r['Zona Plantation']==='A'?'#1a6e45':'#0b6e8a'}">${r['Zona Plantation']||'-'}</span></td>
+      <td>${(+r['Size RKT 2024']||0).toFixed(2)}</td>
+      <td>${r['Methode (Plan)']||'-'}</td>
+      <td><span class="badge" style="background:#f0f7f3;color:#1a3a2a">${r['Phasing 2026']||'-'}</span></td>
+      <td>${badge(r['Status Harvest'])}</td>
+      <td style="font-family:'IBM Plex Mono',monospace">${(+r['TCH Gross 2025']||0).toFixed(1)}</td>
+      <td style="font-family:'IBM Plex Mono',monospace">${(+r['TCH Gross 2026']||0).toFixed(1)}</td>
+      <td>${badge(r['Status FSA'])}</td>
+      <td>${badge(r['Status POST 1'])}</td>
+      <td><span class="badge" style="background:${r['Kondisi Paska Ratoon']==='Bagus'?'#e8f5ee':'#fef3e2'};color:${r['Kondisi Paska Ratoon']==='Bagus'?'#1a6e45':'#b45309'}">${r['Kondisi Paska Ratoon']||'-'}</span></td>
+      <td><span class="badge" style="background:#f3f4f6;color:#374151">${r['Next Action']||'-'}</span></td>
+      <td style="font-size:12px">${r.Supervisor||'-'}</td>
+    </tr>
+  `).join('');
+  document.getElementById('countRC').textContent = `${state.filteredRC.length} petak`;
+}
+
+function renderTableRPC() {
+  const tbody = document.getElementById('tbodyRPC');
+  tbody.innerHTML = state.filteredRPC.map(r => `
+    <tr>
+      <td><strong style="font-family:'IBM Plex Mono',monospace;font-size:12px">${r.Petak||'-'}</strong></td>
+      <td><span class="badge" style="background:${r['Zona Plantation']==='A'?'#e8f5ee':'#e0f4fb'};color:${r['Zona Plantation']==='A'?'#1a6e45':'#0b6e8a'}">${r['Zona Plantation']||'-'}</span></td>
+      <td>${(+r['Size RKT 2024']||0).toFixed(2)}</td>
+      <td style="font-size:12px">${r['Action Plan Current Crop 2025']||'-'}</td>
+      <td><span class="badge" style="background:#f0f7f3;color:#1a3a2a">${r['Phasing 2025']||'-'}</span></td>
+      <td>${badge(r['Status LC'])}</td>
+      <td>${badge(r['Status Furrowing'])}</td>
+      <td>${badge(r['Status Planting'])}</td>
+      <td>${badge(r['Status FSA'])}</td>
+      <td>${badge(r['Status POST 1'])}</td>
+      <td>${badge(r['Status POST 3'])}</td>
+      <td style="font-family:'IBM Plex Mono',monospace">${r['% Germinasi'] ? (r['% Germinasi']*100).toFixed(1)+'%' : '-'}</td>
+    </tr>
+  `).join('');
+  document.getElementById('countRPC').textContent = `${state.filteredRPC.length} petak`;
+}
+
+function badge(val) {
+  if (!val) return '<span class="badge badge-notyet">-</span>';
+  const v = String(val);
+  if (v==='Done') return `<span class="badge badge-done">✓ Done</span>`;
+  if (v==='Progress') return `<span class="badge badge-progress">⟳ Progress</span>`;
+  return `<span class="badge badge-notyet">${v}</span>`;
+}
+
+function filterTableRC() {
+  const q = document.getElementById('searchRC').value.toLowerCase();
+  const zona = document.getElementById('filterZonaRC').value;
+  const phasing = document.getElementById('filterPhasingRC').value;
+  const harvest = document.getElementById('filterHarvestRC').value;
+  const next = document.getElementById('filterNextRC').value;
+  state.filteredRC = state.rc.filter(r => {
+    if (zona && r['Zona Plantation'] !== zona) return false;
+    if (phasing && r['Phasing 2026'] !== phasing) return false;
+    if (harvest && r['Status Harvest'] !== harvest) return false;
+    if (next && r['Next Action'] !== next) return false;
+    if (q && !JSON.stringify(r).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  renderTableRC();
+}
+
+function filterTableRPC() {
+  const q = document.getElementById('searchRPC').value.toLowerCase();
+  const zona = document.getElementById('filterZonaRPC').value;
+  const phasing = document.getElementById('filterPhasingRPC').value;
+  const action = document.getElementById('filterActionRPC').value;
+  state.filteredRPC = state.rpc.filter(r => {
+    if (zona && r['Zona Plantation'] !== zona) return false;
+    if (phasing && r['Phasing 2025'] !== phasing) return false;
+    if (action && r['Action Plan Current Crop 2025'] !== action) return false;
+    if (q && !JSON.stringify(r).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  renderTableRPC();
+}
+
+function sortTable(type, col, th) {
+  const dir = (th.dataset.dir == 1) ? -1 : 1;
+  document.querySelectorAll('.data-table th').forEach(h => h.dataset.dir = '');
+  th.dataset.dir = dir;
+  const arr = type==='rc' ? state.filteredRC : state.filteredRPC;
+  arr.sort((a,b) => {
+    const av = a[col]??'', bv = b[col]??'';
+    if (typeof av === 'number') return (av-bv)*dir;
+    return String(av).localeCompare(String(bv))*dir;
+  });
+  type==='rc' ? renderTableRC() : renderTableRPC();
+}
+
+// ========== FILE UPLOAD ==========
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+}
+
+function handleFileUpload(e) {
+  const file = e.target.files[0];
+  if (file) processFile(file);
+}
+
+function processFile(file) {
+  if (!file.name.endsWith('.xlsx')) {
+    showToast('❌ File harus berformat .xlsx');
+    return;
+  }
+  const log = document.getElementById('uploadLog');
+  document.getElementById('uploadStatus').style.display = 'block';
+  log.innerHTML = `⏳ Membaca file: <strong>${file.name}</strong>...\n`;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array', cellDates: true });
+      log.innerHTML += `✅ File berhasil dibaca\n`;
+
+      // Process RC
+      let rcRows = 0, rpcRows = 0;
+      if (wb.SheetNames.includes('DBASE RC')) {
+        const ws = wb.Sheets['DBASE RC'];
+        const raw = XLSX.utils.sheet_to_json(ws, { header:1, defval: null });
+        const headers = raw[2]; // row index 2 = headers
+        const data = raw.slice(3).filter(r => r[1]);
+        const objs = data.map(r => {
+          const o = {};
+          headers.forEach((h,i) => { if(h) o[h] = r[i]; });
+          return o;
+        });
+        state.rc = objs;
+        state.filteredRC = [...objs];
+        rcRows = objs.length;
+        log.innerHTML += `✅ DBASE RC: ${rcRows} baris data dimuat\n`;
+      } else {
+        log.innerHTML += `⚠️ Sheet "DBASE RC" tidak ditemukan\n`;
+      }
+
+      if (wb.SheetNames.includes('DBASE RPC')) {
+        const ws = wb.Sheets['DBASE RPC'];
+        const raw = XLSX.utils.sheet_to_json(ws, { header:1, defval: null });
+        const headers = raw[2];
+        const data = raw.slice(3).filter(r => r[1]);
+        const objs = data.map(r => {
+          const o = {};
+          headers.forEach((h,i) => { if(h) o[h] = r[i]; });
+          return o;
+        });
+        state.rpc = objs;
+        state.filteredRPC = [...objs];
+        rpcRows = objs.length;
+        log.innerHTML += `✅ DBASE RPC: ${rpcRows} baris data dimuat\n`;
+      } else {
+        log.innerHTML += `⚠️ Sheet "DBASE RPC" tidak ditemukan\n`;
+      }
+
+      // Re-render tables
+      renderTableRC();
+      renderTableRPC();
+
+      log.innerHTML += `\n🎉 Data berhasil diperbarui! RC: ${rcRows} petak, RPC: ${rpcRows} petak\n`;
+      log.innerHTML += `📊 Grafik pada tab Dashboard, Ratoon, dan Replanting menggunakan data agregat dari file asli.\n`;
+      log.innerHTML += `📋 Data detail tersedia pada tab "Data RC" dan "Data RPC".\n`;
+
+      showToast(`✅ Data diperbarui: ${rcRows} RC + ${rpcRows} RPC petak`);
+    } catch(err) {
+      log.innerHTML += `❌ Error membaca file: ${err.message}\n`;
+      showToast('❌ Gagal membaca file. Periksa format file.');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ========== TOAST ==========
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ========== PAGE NAVIGATION ==========
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  event.currentTarget && event.currentTarget.classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    if (t.getAttribute('onclick') && t.getAttribute('onclick').includes(`'${page}'`)) t.classList.add('active');
+  });
+
+  // Lazy init charts
+  if (page === 'dashboard') initDashboard();
+  if (page === 'ratoon') initRatoon();
+  if (page === 'replanting') initReplanting();
+  if (page === 'tabel-rc') { filterTableRC(); }
+  if (page === 'tabel-rpc') { filterTableRPC(); }
+}
+
+// ========== INIT ==========
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('id-ID', {
+    weekday:'long', year:'numeric', month:'long', day:'numeric'
+  });
+  initDashboard();
+  renderTableRC();
+  renderTableRPC();
+});
+</script>
+</body>
+</html>
